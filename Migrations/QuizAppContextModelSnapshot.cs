@@ -15,13 +15,14 @@ namespace QuizappNet.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 .HasAnnotation("ProductVersion", "2.1.1-rtm-30846")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("QuizappNet.Models.Question", b =>
                 {
-                    b.Property<long>("Id");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<int>("Complexity");
 
@@ -34,7 +35,8 @@ namespace QuizappNet.Migrations
 
             modelBuilder.Entity("QuizappNet.Models.QuestionChoice", b =>
                 {
-                    b.Property<long>("Id");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("ChoiceText");
 
@@ -51,7 +53,8 @@ namespace QuizappNet.Migrations
 
             modelBuilder.Entity("QuizappNet.Models.Quiz", b =>
                 {
-                    b.Property<long>("Id");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("Name");
 
@@ -79,7 +82,8 @@ namespace QuizappNet.Migrations
 
             modelBuilder.Entity("QuizappNet.Models.Result", b =>
                 {
-                    b.Property<long>("Id");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<long?>("QuizId");
 

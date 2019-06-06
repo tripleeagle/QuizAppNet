@@ -8,6 +8,7 @@ namespace QuizappNet.Models
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ForNpgsqlUseIdentityColumns();
             modelBuilder.Entity<QuizQuestion>().HasKey(t => new { t.QuizId, t.QuestionId });
         }
         public DbSet<Quiz> Quizzes { get; set; }

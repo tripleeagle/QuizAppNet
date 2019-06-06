@@ -13,13 +13,13 @@ namespace QuizappNet.Controllers{
             _context = context;
         }
 
-        [HttpGet]
+        [HttpGet("GetQuestionList")]
         public ActionResult<List<Question>> GetAll()
         {
             return _context.Questions.ToList();
         }
 
-        [HttpGet("{id}", Name = "GetTodo")]
+        [HttpGet("{id}", Name = "GetQuestion")]
         public ActionResult<Question> GetById(long id)
         {
             var item = _context.Questions.Find(id);

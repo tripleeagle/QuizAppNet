@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace QuizappNet.Migrations
 {
@@ -10,7 +11,8 @@ namespace QuizappNet.Migrations
                 name: "Questions",
                 columns: table => new
                 {
-                    Id = table.Column<long>(nullable: false),
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Complexity = table.Column<int>(nullable: false),
                     questionText = table.Column<string>(nullable: true)
                 },
@@ -23,7 +25,8 @@ namespace QuizappNet.Migrations
                 name: "Quizzes",
                 columns: table => new
                 {
-                    Id = table.Column<long>(nullable: false),
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(nullable: true),
                     Type = table.Column<string>(nullable: true),
                     minPercentage = table.Column<double>(nullable: false)
@@ -37,7 +40,8 @@ namespace QuizappNet.Migrations
                 name: "QuestionChoices",
                 columns: table => new
                 {
-                    Id = table.Column<long>(nullable: false),
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ChoiceText = table.Column<string>(nullable: true),
                     IsRight = table.Column<bool>(nullable: false),
                     QuestionId = table.Column<long>(nullable: true)
@@ -81,7 +85,8 @@ namespace QuizappNet.Migrations
                 name: "Results",
                 columns: table => new
                 {
-                    Id = table.Column<long>(nullable: false),
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserName = table.Column<string>(nullable: true),
                     Score = table.Column<double>(nullable: false),
                     QuizId = table.Column<long>(nullable: true)

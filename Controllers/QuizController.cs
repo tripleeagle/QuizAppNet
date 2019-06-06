@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace QuizappNet.Controllers{
 
         public QuizController (QuizAppContext context){
             _context = context;
-            if (_context.Quizzes.Count() == 0)
+            /* if (_context.Quizzes.Count() == 0)
             {
                 ICollection<Question> questions = new HashSet<Question>();
                 Quiz quiz = new Quiz { Name = "Subtraction", Type = "Math", minPercentage = 50 };
@@ -19,16 +20,16 @@ namespace QuizappNet.Controllers{
                 _context.Quizzes.Add(quiz);
 
                 _context.SaveChanges();
-            }
+            } */
         }
-
-        [HttpGet]
+        
+        [HttpGet("GetQuizList")]
         public ActionResult<List<Quiz>> GetAll()
         {
             return _context.Quizzes.ToList();
         }
 
-        [HttpGet("{id}", Name = "GetTodo")]
+        [HttpGet("{id}", Name = "GetQuiz")]
         public ActionResult<Quiz> GetById(long id)
         {
             var item = _context.Quizzes.Find(id);
@@ -37,6 +38,12 @@ namespace QuizappNet.Controllers{
                 return NotFound();
             }
             return item;
+        }
+
+        [HttpPost("AddQuiz")]
+        public void Add (Quiz quiz){
+            _context.Quizzes.Add(quiz);
+            _context.SaveChanges();
         }
     }
 }
