@@ -32,6 +32,9 @@ namespace QuizappNet.Controllers{
 
         [HttpGet("GetQuestionChoiceList")]
         public ActionResult<List<QuestionChoice>> GetQuestionChoiceList(long id){
+            if ( GetById(id) == null ){
+                return NotFound();
+            }
             IQueryable<QuestionChoice> QuestionChoices = _context.QuestionChoices
             .Where( qc => qc.QuestionId == id );
             return QuestionChoices.ToList();
@@ -42,5 +45,7 @@ namespace QuizappNet.Controllers{
             _context.Questions.Add(question);
             _context.SaveChanges();
         }
+
+
     }
 }
