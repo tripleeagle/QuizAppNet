@@ -11,6 +11,7 @@ namespace QuizappNet.Models
         public long Id { get; set; }
         public string UserName { get; set; }
         public double Score { get; set; }
+        public long? QuizId { get; set; }
         public Quiz Quiz { get; set; }
     }
 }

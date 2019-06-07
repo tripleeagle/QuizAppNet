@@ -11,8 +11,8 @@ namespace QuizappNet.Models
         public long Id { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
-        public double minPercentage { get; set; }
-        public ICollection<QuizQuestion> QuizQuestion { get; set; } = new HashSet<QuizQuestion>();
-        public ICollection<Result> Results { get; set; } = new HashSet<Result>();
+        public double MinPercentage { get; set; }
+        public virtual ICollection<QuizQuestion> QuestionsLink { get; set; }
+        public virtual ICollection<Result> Results { get; set; }
     }
 }

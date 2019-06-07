@@ -19,7 +19,7 @@ namespace QuizappNet.Controllers{
             return _context.Questions.ToList();
         }
 
-        [HttpGet("{id}", Name = "GetQuestion")]
+        [HttpGet("GetQuestionById")]
         public ActionResult<Question> GetById(long id)
         {
             var item = _context.Questions.Find(id);
@@ -28,6 +28,19 @@ namespace QuizappNet.Controllers{
                 return NotFound();
             }
             return item;
+        }
+
+        [HttpGet("GetQuestionChoiceList")]
+        public ActionResult<List<QuestionChoice>> GetQuestionChoiceList(long id){
+            IQueryable<QuestionChoice> QuestionChoices = _context.QuestionChoices
+            .Where( qc => qc.QuestionId == id );
+            return QuestionChoices.ToList();
+        }
+
+        [HttpPost("AddQuestion")]
+        public void Add (Question question){
+            _context.Questions.Add(question);
+            _context.SaveChanges();
         }
     }
 }

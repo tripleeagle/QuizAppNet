@@ -10,6 +10,7 @@ namespace QuizappNet.Models
         public long Id { get; set; }
         public string ChoiceText { get; set; }
         public bool IsRight { get; set; }
+        public long? QuestionId { get; set; }
         public Question Question { get; set; }
     }
 }

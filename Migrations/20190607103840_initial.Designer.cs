@@ -10,7 +10,7 @@ using QuizappNet.Models;
 namespace QuizappNet.Migrations
 {
     [DbContext(typeof(QuizAppContext))]
-    [Migration("20190606183622_initial")]
+    [Migration("20190607103840_initial")]
     partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,7 +28,7 @@ namespace QuizappNet.Migrations
 
                     b.Property<int>("Complexity");
 
-                    b.Property<string>("questionText");
+                    b.Property<string>("QuestionText");
 
                     b.HasKey("Id");
 
@@ -58,11 +58,11 @@ namespace QuizappNet.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<double>("MinPercentage");
+
                     b.Property<string>("Name");
 
                     b.Property<string>("Type");
-
-                    b.Property<double>("minPercentage");
 
                     b.HasKey("Id");
 
@@ -110,12 +110,12 @@ namespace QuizappNet.Migrations
             modelBuilder.Entity("QuizappNet.Models.QuizQuestion", b =>
                 {
                     b.HasOne("QuizappNet.Models.Question", "Question")
-                        .WithMany("QuizQuestion")
+                        .WithMany("QuizzesLink")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("QuizappNet.Models.Quiz", "Quiz")
-                        .WithMany("QuizQuestion")
+                        .WithMany("QuestionsLink")
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

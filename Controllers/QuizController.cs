@@ -12,15 +12,6 @@ namespace QuizappNet.Controllers{
 
         public QuizController (QuizAppContext context){
             _context = context;
-            /* if (_context.Quizzes.Count() == 0)
-            {
-                ICollection<Question> questions = new HashSet<Question>();
-                Quiz quiz = new Quiz { Name = "Subtraction", Type = "Math", minPercentage = 50 };
-                questions.Add( new Question{Complexity=2, questionText="4/2 = ?"} );
-                _context.Quizzes.Add(quiz);
-
-                _context.SaveChanges();
-            } */
         }
         
         [HttpGet("GetQuizList")]
@@ -43,6 +34,9 @@ namespace QuizappNet.Controllers{
         [HttpPost("AddQuiz")]
         public void Add (Quiz quiz){
             _context.Quizzes.Add(quiz);
+            if ( quiz.Results.Count != 0 )
+                _context.Results.AddRange(quiz.Results);
+            
             _context.SaveChanges();
         }
     }

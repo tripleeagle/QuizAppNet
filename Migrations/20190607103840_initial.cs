@@ -14,7 +14,7 @@ namespace QuizappNet.Migrations
                     Id = table.Column<long>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Complexity = table.Column<int>(nullable: false),
-                    questionText = table.Column<string>(nullable: true)
+                    QuestionText = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -29,7 +29,7 @@ namespace QuizappNet.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(nullable: true),
                     Type = table.Column<string>(nullable: true),
-                    minPercentage = table.Column<double>(nullable: false)
+                    MinPercentage = table.Column<double>(nullable: false)
                 },
                 constraints: table =>
                 {

@@ -10,8 +10,8 @@ namespace QuizappNet.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
         public int Complexity { get; set; }
-        public string questionText { get; set; }
-        public virtual ICollection<QuizQuestion> QuizQuestion { get; set; } = new HashSet<QuizQuestion>();
-        public ICollection<QuestionChoice> QuestionChoices { get; set; }
+        public string QuestionText { get; set; }
+        public virtual ICollection<QuizQuestion> QuizzesLink { get; set; }
+        public virtual ICollection<QuestionChoice> QuestionChoices { get; set; }
     }
 }
