@@ -21,7 +21,7 @@ namespace QuizappNet.Controllers{
             return _context.Quizzes.ToList();
         }
 
-        [HttpGet("{id}", Name = "GetQuiz")]
+        [HttpGet("GetQuiz")]
         public ActionResult<Quiz> GetById(long id)
         {
             var item = _context.Quizzes.Find(id);
@@ -40,6 +40,24 @@ namespace QuizappNet.Controllers{
                 questionLink.Question = _context.Questions.Find(questionLink.QuestionId);
             }
             _context.SaveChanges();
+        }
+
+        [HttpGet("GetQuestionsByQuizId")]
+        public ActionResult<List<Question>> GetQuestions(long id)
+        {
+            IQueryable<QuizQuestion> quizQuestions = _context.QuizQuestions
+            .Where( qq => qq.QuizId == id );
+            var quizQuestionList =  quizQuestions.ToList();
+            var questionList = new List<Question>();
+            foreach ( var quizQuestion in quizQuestionList ){
+                var question = _context.Questions.Find(quizQuestion.QuestionId);
+                if ( question != null ){
+                    question.QuizzesLink = null;
+                    questionList.Add( question );
+                }
+            }
+
+            return questionList;
         }
     }
 }
