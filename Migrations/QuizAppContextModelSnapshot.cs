@@ -77,7 +77,7 @@ namespace QuizappNet.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("QuizQuestion");
+                    b.ToTable("QuizQuestions");
                 });
 
             modelBuilder.Entity("QuizappNet.Models.Result", b =>

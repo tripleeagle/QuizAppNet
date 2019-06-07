@@ -58,7 +58,7 @@ namespace QuizappNet.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "QuizQuestion",
+                name: "QuizQuestions",
                 columns: table => new
                 {
                     QuizId = table.Column<long>(nullable: false),
@@ -66,15 +66,15 @@ namespace QuizappNet.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_QuizQuestion", x => new { x.QuizId, x.QuestionId });
+                    table.PrimaryKey("PK_QuizQuestions", x => new { x.QuizId, x.QuestionId });
                     table.ForeignKey(
-                        name: "FK_QuizQuestion_Questions_QuestionId",
+                        name: "FK_QuizQuestions_Questions_QuestionId",
                         column: x => x.QuestionId,
                         principalTable: "Questions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_QuizQuestion_Quizzes_QuizId",
+                        name: "FK_QuizQuestions_Quizzes_QuizId",
                         column: x => x.QuizId,
                         principalTable: "Quizzes",
                         principalColumn: "Id",
@@ -108,8 +108,8 @@ namespace QuizappNet.Migrations
                 column: "QuestionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuizQuestion_QuestionId",
-                table: "QuizQuestion",
+                name: "IX_QuizQuestions_QuestionId",
+                table: "QuizQuestions",
                 column: "QuestionId");
 
             migrationBuilder.CreateIndex(
@@ -124,7 +124,7 @@ namespace QuizappNet.Migrations
                 name: "QuestionChoices");
 
             migrationBuilder.DropTable(
-                name: "QuizQuestion");
+                name: "QuizQuestions");
 
             migrationBuilder.DropTable(
                 name: "Results");

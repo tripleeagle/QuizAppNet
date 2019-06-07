@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Data.Common;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,9 +35,10 @@ namespace QuizappNet.Controllers{
         [HttpPost("AddQuiz")]
         public void Add (Quiz quiz){
             _context.Quizzes.Add(quiz);
-            if ( quiz.Results.Count != 0 )
-                _context.Results.AddRange(quiz.Results);
-            
+            foreach ( var questionLink in quiz.QuestionsLink ){
+                questionLink.Quiz = quiz;
+                questionLink.Question = _context.Questions.Find(questionLink.QuestionId);
+            }
             _context.SaveChanges();
         }
     }

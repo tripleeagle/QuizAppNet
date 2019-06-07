@@ -10,7 +10,7 @@ using QuizappNet.Models;
 namespace QuizappNet.Migrations
 {
     [DbContext(typeof(QuizAppContext))]
-    [Migration("20190607103840_initial")]
+    [Migration("20190607151440_initial")]
     partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -79,7 +79,7 @@ namespace QuizappNet.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("QuizQuestion");
+                    b.ToTable("QuizQuestions");
                 });
 
             modelBuilder.Entity("QuizappNet.Models.Result", b =>
