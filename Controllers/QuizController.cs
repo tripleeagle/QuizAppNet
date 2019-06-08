@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using QuizappNet.Models;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
@@ -16,15 +18,16 @@ namespace QuizappNet.Controllers{
         }
         
         [HttpGet("GetQuizList")]
-        public ActionResult<List<Quiz>> GetAll()
+        public async Task<ActionResult<List<Quiz>>> GetAll()
         {
-            return _context.Quizzes.ToList();
+            return await _context.Quizzes.ToListAsync();
         }
 
         [HttpGet("GetQuiz")]
-        public ActionResult<Quiz> GetById(long id)
+        public async Task<ActionResult<Quiz>> GetById(long id)
         {
-            var item = _context.Quizzes.Find(id);
+            var item = await (_context.Quizzes.FindAsync(id));
+
             if (item == null)
             {
                 return NotFound();
@@ -33,22 +36,23 @@ namespace QuizappNet.Controllers{
         }
 
         [HttpPost("CreateQuiz")]
-        public void Create (Quiz quiz){
-            _context.Quizzes.Add(quiz);
+        public async Task Create (Quiz quiz){
+            await _context.Quizzes.AddAsync(quiz);
+
             if ( quiz.QuestionsLink != null ){
                 foreach ( var questionLink in quiz?.QuestionsLink ){
                     questionLink.Quiz = quiz;
-                    questionLink.Question = _context.Questions.Find(questionLink.QuestionId);
+                    questionLink.Question = await _context.Questions.FindAsync(questionLink.QuestionId);
                 }
             }
-            _context.SaveChanges();  
+            await _context.SaveChangesAsync();  
         }
         
         [HttpPost("UpdateQuiz")]
-        public void Update (Quiz newQuiz){
-            var oldQuiz = _context.Quizzes.Find(newQuiz.Id);
+        public async Task Update (Quiz newQuiz){
+            var oldQuiz = await _context.Quizzes.FindAsync(newQuiz.Id);
             if ( oldQuiz == null ) {
-                Create(newQuiz);
+                await Create(newQuiz);
                 return;
             } 
             oldQuiz.Name = newQuiz.Name;
@@ -63,15 +67,15 @@ namespace QuizappNet.Controllers{
             if ( newQuiz.QuestionsLink != null ){
                 foreach ( var questionLink in newQuiz.QuestionsLink ){
                     questionLink.Quiz = newQuiz;
-                    questionLink.Question = _context.Questions.Find(questionLink.QuestionId);
+                    questionLink.Question = await _context.Questions.FindAsync(questionLink.QuestionId);
                 }
             }
-            _context.SaveChanges();  
+            await _context.SaveChangesAsync();  
         }
 
         [HttpDelete("DeleteQuiz")]
-        public void Delete (long id){
-            var quiz = _context.Quizzes.Find(id);
+        public async Task Delete (long id){
+            var quiz = await _context.Quizzes.FindAsync(id);
             if ( quiz == null ){
                 return;
             }
@@ -81,42 +85,41 @@ namespace QuizappNet.Controllers{
             if ( quiz.Results != null ){
                 quiz.Results.Clear();
             }
-            var results = _context.Results.Where( r => r.QuizId == quiz.Id ).ToList();
+            var results = _context.Results.Where( r => r.QuizId == quiz.Id ).ToListAsync();
             if ( results != null ){
-                _context.Results.RemoveRange(results);
+                _context.Results.RemoveRange(await results);
             }
 
-            var questionList = _context.QuizQuestions.Where( qq => qq.QuizId == quiz.Id ).ToList();
+            var questionList = _context.QuizQuestions.Where( qq => qq.QuizId == quiz.Id ).ToListAsync();
             if ( questionList != null ){
-                _context.QuizQuestions.RemoveRange(questionList);
+                _context.QuizQuestions.RemoveRange(await questionList);
             }
 
             _context.Quizzes.Remove(quiz);
-            _context.SaveChanges();  
+            await _context.SaveChangesAsync();  
         }
 
         [HttpGet("GetResults")]
-        public ActionResult<List<Result>> GetResults(long id){
-            if ( GetById(id) == null ){
+        public async Task<ActionResult<List<Result>>> GetResults(long id){
+            if ( (await GetById(id)) == null ){
                 return NotFound();
             }
-            var results =  _context.Results.Where( r => r.QuizId == id).ToList();
-            foreach ( var result in results ){
+            var results =  _context.Results.Where( r => r.QuizId == id).ToListAsync();
+            foreach ( var result in await results ){
                 result.Quiz = null;
             }
-            return results;
+            return await results;
         }
 
         [HttpGet("GetQuestions")]
-        public ActionResult<List<Question>> GetQuestions(long id)
+        public async Task<ActionResult<List<Question>>> GetQuestions(long id)
         {
-            IQueryable<QuizQuestion> quizQuestions = _context.QuizQuestions
-            .Where( qq => qq.QuizId == id );
-            var quizQuestionList =  quizQuestions.ToList();
+            IQueryable<QuizQuestion> quizQuestions = _context.QuizQuestions.Where( qq => qq.QuizId == id );
+            var quizQuestionList = quizQuestions.ToListAsync();
             var questionList = new List<Question>();
-            foreach ( var quizQuestion in quizQuestionList )
+            foreach ( var quizQuestion in await quizQuestionList )
             {
-                var question = _context.Questions.Find(quizQuestion.QuestionId);
+                var question = await _context.Questions.FindAsync(quizQuestion.QuestionId);
                 if ( question != null ){
                     question.QuizzesLink = null; //To prevent infinite recursion
                     questionList.Add( question );
