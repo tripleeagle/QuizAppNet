@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
 
 namespace QuizappNet.Controllers{
@@ -13,31 +15,57 @@ namespace QuizappNet.Controllers{
             _context = context;
         }
 
-        [HttpGet("GetQuestionChoiceList")]
-        public ActionResult<List<QuestionChoice>> GetAll()
+        [HttpGet("GetQuestionChoices")]
+        public async Task<ActionResult<List<QuestionChoice>>> GetAll()
         {
-            return _context.QuestionChoices.ToList();
+            return await _context.QuestionChoices.ToListAsync();
         }
 
-        [HttpGet("{id}", Name = "GetQuestionChoice")]
-        public ActionResult<QuestionChoice> GetById(long id)
+        [HttpGet("GetQuestionChoice")]
+        public async Task<ActionResult<QuestionChoice>> GetById(long id)
         {
-            var item = _context.QuestionChoices.Find(id);
+            var item = await _context.QuestionChoices.FindAsync(id);
             if (item == null)
-            {
                 return NotFound();
-            }
+        
             return item;
         }
 
         [HttpPost("AddQuestionChoice")]
-        public void Add (QuestionChoice questionChoice){
-            _context.QuestionChoices.Add(questionChoice);
-            /*if ( questionChoice.QuestionId != null ){
-                var question = _context.Questions.FirstOrDefault( q => q.Id == questionChoice.QuestionId );
-                question?.QuestionChoices.Add(questionChoice);
-            } */
-            _context.SaveChanges();
+        public async Task Create (QuestionChoice questionChoice){
+            await _context.QuestionChoices.AddAsync(questionChoice);
+            await _context.SaveChangesAsync();
+        }
+
+        [HttpPost("UpdateQuestionChoice")]
+        public async Task Update (QuestionChoice newQuestionChoice){
+            QuestionChoice oldQuestionChoice = (await GetById(newQuestionChoice.Id)).Value;
+            if ( oldQuestionChoice == null ) {
+                await Create(newQuestionChoice);
+                return;
+            }
+            oldQuestionChoice.ChoiceText = newQuestionChoice.ChoiceText;
+            oldQuestionChoice.IsRight = newQuestionChoice.IsRight;
+            oldQuestionChoice.Question = newQuestionChoice.Question;
+            oldQuestionChoice.QuestionId = newQuestionChoice.QuestionId;
+            await _context.SaveChangesAsync();  
+        }
+
+        [HttpDelete("DeleteQuestionChoice")]
+        public async Task Delete (long id){
+            QuestionChoice questionChoice = await _context.QuestionChoices.FindAsync(id);
+            if ( questionChoice == null )
+                return;
+            _context.QuestionChoices.Remove(questionChoice);
+            await _context.SaveChangesAsync();  
+        }
+
+        [HttpGet("GetQuestion")]
+        public async Task<ActionResult<Question>> GetQuiz (long id){
+            QuestionChoice questionChoice = (await GetById(id)).Value;
+            if ( questionChoice == null )
+                return NotFound();
+            return await _context.Questions.FindAsync(questionChoice.QuestionId);
         }
     }
 }

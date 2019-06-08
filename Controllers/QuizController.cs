@@ -17,7 +17,7 @@ namespace QuizappNet.Controllers{
             _context = context;
         }
         
-        [HttpGet("GetQuizList")]
+        [HttpGet("GetQuizzes")]
         public async Task<ActionResult<List<Quiz>>> GetAll()
         {
             return await _context.Quizzes.ToListAsync();
@@ -27,11 +27,8 @@ namespace QuizappNet.Controllers{
         public async Task<ActionResult<Quiz>> GetById(long id)
         {
             var item = await (_context.Quizzes.FindAsync(id));
-
             if (item == null)
-            {
                 return NotFound();
-            }
             return item;
         }
 
@@ -50,47 +47,48 @@ namespace QuizappNet.Controllers{
         
         [HttpPost("UpdateQuiz")]
         public async Task Update (Quiz newQuiz){
-            var oldQuiz = await _context.Quizzes.FindAsync(newQuiz.Id);
+            Quiz oldQuiz = (await GetById(newQuiz.Id)).Value;
             if ( oldQuiz == null ) {
                 await Create(newQuiz);
                 return;
             } 
             oldQuiz.Name = newQuiz.Name;
             oldQuiz.MinPercentage = newQuiz.MinPercentage;
+            oldQuiz.Results.Clear();
             oldQuiz.Results = newQuiz.Results;
             oldQuiz.Type = newQuiz.Type;
 
-            if ( oldQuiz.QuestionsLink != null ){   
+            if ( oldQuiz.QuestionsLink != null )
                 oldQuiz.QuestionsLink.Clear();
-            }
-
+            
             if ( newQuiz.QuestionsLink != null ){
                 foreach ( var questionLink in newQuiz.QuestionsLink ){
                     questionLink.Quiz = newQuiz;
                     questionLink.Question = await _context.Questions.FindAsync(questionLink.QuestionId);
                 }
             }
+            oldQuiz.QuestionsLink = newQuiz.QuestionsLink;
             await _context.SaveChangesAsync();  
         }
 
         [HttpDelete("DeleteQuiz")]
         public async Task Delete (long id){
             var quiz = await _context.Quizzes.FindAsync(id);
-            if ( quiz == null ){
+            if ( quiz == null )
                 return;
-            }
-            if ( quiz.QuestionsLink != null ){   
+
+            if ( quiz.QuestionsLink != null )
                 quiz.QuestionsLink.Clear();
-            }
-            if ( quiz.Results != null ){
+            
+            if ( quiz.Results != null )
                 quiz.Results.Clear();
-            }
-            var results = _context.Results.Where( r => r.QuizId == quiz.Id ).ToListAsync();
+            
+            var results = _context.Results.Where( r => r.QuizId == id ).ToListAsync();
             if ( results != null ){
                 _context.Results.RemoveRange(await results);
             }
 
-            var questionList = _context.QuizQuestions.Where( qq => qq.QuizId == quiz.Id ).ToListAsync();
+            var questionList = _context.QuizQuestions.Where( qq => qq.QuizId == id ).ToListAsync();
             if ( questionList != null ){
                 _context.QuizQuestions.RemoveRange(await questionList);
             }
