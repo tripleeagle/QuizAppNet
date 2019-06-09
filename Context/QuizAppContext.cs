@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 
-
 namespace QuizappNet.Models
 {
     public class QuizAppContext : DbContext{
@@ -12,6 +11,8 @@ namespace QuizappNet.Models
             modelBuilder.ForNpgsqlUseIdentityColumns();
             modelBuilder.Entity<QuizQuestion>().HasKey(t => new { t.QuizId, t.QuestionId });
         }
+        public DbSet<User> Users { get; set; }
+
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<QuestionChoice> QuestionChoices { get; set; }

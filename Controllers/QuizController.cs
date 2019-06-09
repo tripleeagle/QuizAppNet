@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using QuizappNet.Models;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
     [ApiController]
+    
     public class QuizController : ControllerBase{
         private readonly QuizAppContext _context;
 
@@ -18,12 +20,14 @@ namespace QuizappNet.Controllers{
         }
         
         [HttpGet("GetQuizzes")]
+        [Authorize]
         public async Task<ActionResult<List<Quiz>>> GetAll()
         {
             return await _context.Quizzes.ToListAsync();
         }
 
         [HttpGet("GetQuiz")]
+        [Authorize]
         public async Task<ActionResult<Quiz>> GetById(long id)
         {
             var item = await (_context.Quizzes.FindAsync(id));
@@ -35,6 +39,7 @@ namespace QuizappNet.Controllers{
         [HttpPost("CreateQuiz")]
         public async Task Create (Quiz quiz){
             await _context.Quizzes.AddAsync(quiz);
+            var check = User.Identity.IsAuthenticated;
 
             if ( quiz.QuestionsLink != null ){
                 foreach ( var questionLink in quiz?.QuestionsLink ){
