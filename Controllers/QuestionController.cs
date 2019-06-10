@@ -20,7 +20,7 @@ namespace QuizappNet.Controllers{
         [HttpGet("GetQuestions")]
         public async Task<ActionResult<List<Question>>> GetAll()
         {
-            return await _context.Questions.ToListAsync();
+            return await _context.Questions.AsNoTracking().ToListAsync();
         }
 
         [HttpGet("GetQuestion")]
@@ -100,7 +100,7 @@ namespace QuizappNet.Controllers{
         public async Task<ActionResult<List<QuestionChoice>>> GetQuestionChoices(long id){
             if ( await GetById(id) == null )
                 return NotFound();
-            IQueryable<QuestionChoice> QuestionChoices = _context.QuestionChoices.Where( qc => qc.QuestionId == id );
+            IQueryable<QuestionChoice> QuestionChoices = _context.QuestionChoices.Where( qc => qc.QuestionId == id ).AsNoTracking();
             return await QuestionChoices.ToListAsync();
         }
     }

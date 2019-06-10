@@ -10,7 +10,7 @@ using QuizappNet.Models;
 namespace QuizappNet.Migrations
 {
     [DbContext(typeof(QuizAppContext))]
-    [Migration("20190608190231_initial")]
+    [Migration("20190610195207_initial")]
     partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,18 +21,29 @@ namespace QuizappNet.Migrations
                 .HasAnnotation("ProductVersion", "2.1.1-rtm-30846")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            modelBuilder.Entity("QuizappNet.Auth.User", b =>
+            modelBuilder.Entity("QuizappNet.Models.Group", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Email");
-
-                    b.Property<string>("Password");
+                    b.Property<string>("Name");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Groups");
+                });
+
+            modelBuilder.Entity("QuizappNet.Models.GroupUser", b =>
+                {
+                    b.Property<long>("GroupId");
+
+                    b.Property<long>("UserId");
+
+                    b.HasKey("GroupId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GroupUsers");
                 });
 
             modelBuilder.Entity("QuizappNet.Models.Question", b =>
@@ -112,6 +123,33 @@ namespace QuizappNet.Migrations
                     b.HasIndex("QuizId");
 
                     b.ToTable("Results");
+                });
+
+            modelBuilder.Entity("QuizappNet.Models.User", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name");
+
+                    b.Property<string>("Password");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("QuizappNet.Models.GroupUser", b =>
+                {
+                    b.HasOne("QuizappNet.Models.Group", "Group")
+                        .WithMany("usersLinks")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("QuizappNet.Models.User", "User")
+                        .WithMany("groupsLinks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("QuizappNet.Models.QuestionChoice", b =>

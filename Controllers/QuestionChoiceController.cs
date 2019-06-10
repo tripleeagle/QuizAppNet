@@ -20,7 +20,7 @@ namespace QuizappNet.Controllers{
         [HttpGet("GetQuestionChoices")]
         public async Task<ActionResult<List<QuestionChoice>>> GetAll()
         {
-            return await _context.QuestionChoices.ToListAsync();
+            return await _context.QuestionChoices.AsNoTracking().ToListAsync();
         }
 
         [HttpGet("GetQuestionChoice")]

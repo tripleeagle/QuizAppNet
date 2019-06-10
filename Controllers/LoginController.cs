@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
 using QuizappNet.Services;
+using QuizappNet.Utils;
 
 namespace QuizappNet.Controllers
 {
@@ -20,31 +21,34 @@ namespace QuizappNet.Controllers
         IUserService userService;
          public LoginController (QuizAppContext context){   
             _context = context;
-           this.userService = new UserService();
+           this.userService = new UserService(_context);
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login(User userViewModel)
+        [AllowAnonymous]
+        public async Task<ActionResult> Login(User userModel)
         {
-            var returnUrl = "/";
+            var user = _context.Users.FirstOrDefault( u => u.Name == userModel.Name);
+            
+            if ( user == null )
+                return NotFound();
 
-            var user = this.userService.GetByName(userViewModel.Name);
-
-            if (user.Password != userViewModel.Password)
-                return LocalRedirect(returnUrl);
+            if ( user.Password != userModel.Password)
+                return NotFound();
 
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Name) };
-            var groups = user.Groups;
 
-            foreach (var group in groups)
-                claims.Add(new Claim(group.Name, group.Id.ToString()));
+            var groups = _context.GroupUsers.Where(g => g.UserId == user.Id).ToList();
 
-            var isAdmin = groups.Any(_ => _.Name == GroupNames.Admins);
+            foreach (var GroupUsers in groups)
+                claims.Add(new Claim(GroupUsers.Group.Name, GroupUsers.GroupId.ToString()));
+
+            var isAdmin = groups.Any(_ => _.Group.Name == GroupNames.Admins);
 
             if(isAdmin)
                 claims.Add(new Claim(ClaimTypes.Role, GroupNames.Admins));
 
-            var isSuperUser = groups.Any(_ => _.Name == GroupNames.SuperUsers);
+            var isSuperUser = groups.Any(_ => _.Group.Name == GroupNames.SuperUsers);
 
             if(isSuperUser)
                 claims.Add(new Claim(ClaimTypes.Role, GroupNames.SuperUsers));
@@ -59,37 +63,42 @@ namespace QuizappNet.Controllers
             var principal = new ClaimsPrincipal(identity);
 
             await this.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
-
-            return LocalRedirect(returnUrl);
+            return Ok();
         }
 
         [HttpPost("logout")]
-        public IActionResult Logout()
+        [AllowAnonymous]
+        public ActionResult Logout()
         {
             this.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-            var returnUrl = "/";
-
-            return LocalRedirect(returnUrl);
+            return Ok();
         }
 
-        /* [HttpPost("register")]
-        public async Task<bool> Register(User model)
+        [HttpPost("register")]
+        [Authorize(Roles = GroupNames.SuperUsers)]
+        public async Task<ActionResult> Register(User newUser)
         {
-        if (ModelState.IsValid)
-            {
-                User user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
-                if (user == null)
-                {
-                    _context.Users.Add(new User { Email = model.Email, Password = model.Password });
-                    await _context.SaveChangesAsync();
+            /* if (ModelState.IsValid){
+                return Forbid(StringsConf.InvalidModel);
+            }*/
+            User user = await _context.Users.FirstOrDefaultAsync(u => u.Name == newUser.Name);
 
-                    return true;
-                }    
+            if ( user != null ){
+                return Forbid(StringsConf.InvalidModel);
             }
-            return false;
+
+
+            if ( newUser.groupsLinks != null ){
+                foreach ( var groupLink in newUser.groupsLinks ){
+                    groupLink.User = newUser;
+                    groupLink.Group = _context.Groups.Find(groupLink.GroupId);
+                }
+            }
+
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+              
+            return Ok();
         }
- 
-      */
     }
 }

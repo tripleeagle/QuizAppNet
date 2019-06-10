@@ -23,7 +23,7 @@ namespace QuizappNet.Controllers{
         [Authorize]
         public async Task<ActionResult<List<Quiz>>> GetAll()
         {
-            return await _context.Quizzes.ToListAsync();
+            return await _context.Quizzes.AsNoTracking().ToListAsync();
         }
 
         [HttpGet("GetQuiz")]
@@ -42,7 +42,7 @@ namespace QuizappNet.Controllers{
             var check = User.Identity.IsAuthenticated;
 
             if ( quiz.QuestionsLink != null ){
-                foreach ( var questionLink in quiz?.QuestionsLink ){
+                foreach ( var questionLink in quiz.QuestionsLink ){
                     questionLink.Quiz = quiz;
                     questionLink.Question = await _context.Questions.FindAsync(questionLink.QuestionId);
                 }
@@ -107,7 +107,7 @@ namespace QuizappNet.Controllers{
             if ( (await GetById(id)) == null ){
                 return NotFound();
             }
-            var results =  _context.Results.Where( r => r.QuizId == id).ToListAsync();
+            var results =  _context.Results.Where( r => r.QuizId == id).AsNoTracking().ToListAsync();
             foreach ( var result in await results ){
                 result.Quiz = null;
             }
@@ -117,7 +117,7 @@ namespace QuizappNet.Controllers{
         [HttpGet("GetQuestions")]
         public async Task<ActionResult<List<Question>>> GetQuestions(long id)
         {
-            IQueryable<QuizQuestion> quizQuestions = _context.QuizQuestions.Where( qq => qq.QuizId == id );
+            IQueryable<QuizQuestion> quizQuestions = _context.QuizQuestions.Where( qq => qq.QuizId == id ).AsNoTracking();
             var quizQuestionList = quizQuestions.ToListAsync();
             var questionList = new List<Question>();
             foreach ( var quizQuestion in await quizQuestionList )

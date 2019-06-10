@@ -8,9 +8,9 @@ namespace QuizappNet.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string Name { get; set; }
         public string Password { get; set; }
-         public IList<Group> Groups { get; set; }
+        public ICollection<GroupUser> groupsLinks { get; set; }
     }
 }

@@ -21,7 +21,7 @@ namespace QuizappNet.Controllers{
         [Authorize]
         public async Task<ActionResult<List<Result>>> GetAll()
         {
-            return await _context.Results.ToListAsync();
+            return await _context.Results.AsNoTracking().ToListAsync();
         }
 
         [HttpGet("{id}", Name = "GetResult")]
