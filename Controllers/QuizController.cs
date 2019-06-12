@@ -7,6 +7,7 @@ using QuizappNet.Models;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using QuizappNet.Utils;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
@@ -19,14 +20,14 @@ namespace QuizappNet.Controllers{
             _context = context;
         }
         
-        [HttpGet("GetQuizzes")]
+        [HttpGet("getQuizzes")]
         [Authorize]
         public async Task<ActionResult<List<Quiz>>> GetAll()
         {
             return await _context.Quizzes.AsNoTracking().ToListAsync();
         }
 
-        [HttpGet("GetQuiz")]
+        [HttpGet("getQuiz")]
         [Authorize]
         public async Task<ActionResult<Quiz>> GetById(long id)
         {
@@ -36,8 +37,11 @@ namespace QuizappNet.Controllers{
             return item;
         }
 
-        [HttpPost("CreateQuiz")]
-        public async Task Create (Quiz quiz){
+        [HttpPost("createQuiz")]
+        public async Task<ActionResult> Create (Quiz quiz){
+            if (!ModelState.IsValid) {
+                return Forbid(StringsConf.InvalidModel);
+            }
             await _context.Quizzes.AddAsync(quiz);
             var check = User.Identity.IsAuthenticated;
 
@@ -48,14 +52,19 @@ namespace QuizappNet.Controllers{
                 }
             }
             await _context.SaveChangesAsync();  
+            return Ok();
         }
         
-        [HttpPost("UpdateQuiz")]
-        public async Task Update (Quiz newQuiz){
+        [HttpPost("updateQuiz")]
+        public async Task<ActionResult> Update (Quiz newQuiz){
+            if (!ModelState.IsValid) {
+                return Forbid(StringsConf.InvalidModel);
+            }
+
             Quiz oldQuiz = (await GetById(newQuiz.Id)).Value;
             if ( oldQuiz == null ) {
                 await Create(newQuiz);
-                return;
+                return Ok();
             } 
             oldQuiz.Name = newQuiz.Name;
             oldQuiz.MinPercentage = newQuiz.MinPercentage;
@@ -74,13 +83,14 @@ namespace QuizappNet.Controllers{
             }
             oldQuiz.QuestionsLink = newQuiz.QuestionsLink;
             await _context.SaveChangesAsync();  
+            return Ok();
         }
 
-        [HttpDelete("DeleteQuiz")]
-        public async Task Delete (long id){
+        [HttpDelete("deleteQuiz")]
+        public async Task<ActionResult> Delete (long id){
             var quiz = await _context.Quizzes.FindAsync(id);
             if ( quiz == null )
-                return;
+                return NotFound();
 
             if ( quiz.QuestionsLink != null )
                 quiz.QuestionsLink.Clear();
@@ -100,9 +110,10 @@ namespace QuizappNet.Controllers{
 
             _context.Quizzes.Remove(quiz);
             await _context.SaveChangesAsync();  
+            return Ok();
         }
 
-        [HttpGet("GetResults")]
+        [HttpGet("getResults")]
         public async Task<ActionResult<List<Result>>> GetResults(long id){
             if ( (await GetById(id)) == null ){
                 return NotFound();
@@ -114,7 +125,7 @@ namespace QuizappNet.Controllers{
             return await results;
         }
 
-        [HttpGet("GetQuestions")]
+        [HttpGet("getQuestions")]
         public async Task<ActionResult<List<Question>>> GetQuestions(long id)
         {
             IQueryable<QuizQuestion> quizQuestions = _context.QuizQuestions.Where( qq => qq.QuizId == id ).AsNoTracking();

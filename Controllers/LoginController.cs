@@ -24,7 +24,7 @@ namespace QuizappNet.Controllers
            this.userService = new UserService(_context);
         }
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult> Login(User userModel)
         {
@@ -40,15 +40,16 @@ namespace QuizappNet.Controllers
 
             var groups = _context.GroupUsers.Where(g => g.UserId == user.Id).ToList();
 
-            foreach (var GroupUsers in groups)
-                claims.Add(new Claim(GroupUsers.Group.Name, GroupUsers.GroupId.ToString()));
+            foreach (var groupUser in groups){
+                var group = await _context.Groups.FindAsync(groupUser.GroupId);
+                claims.Add(new Claim(group.Name, groupUser.GroupId.ToString()));
+            }
 
             var isAdmin = groups.Any(_ => _.Group.Name == GroupNames.Admins);
-
+            var isSuperUser = groups.Any(_ => _.Group.Name == GroupNames.SuperUsers);
+        
             if(isAdmin)
                 claims.Add(new Claim(ClaimTypes.Role, GroupNames.Admins));
-
-            var isSuperUser = groups.Any(_ => _.Group.Name == GroupNames.SuperUsers);
 
             if(isSuperUser)
                 claims.Add(new Claim(ClaimTypes.Role, GroupNames.SuperUsers));
@@ -78,15 +79,13 @@ namespace QuizappNet.Controllers
         [Authorize(Roles = GroupNames.SuperUsers)]
         public async Task<ActionResult> Register(User newUser)
         {
-            /* if (ModelState.IsValid){
-                return Forbid(StringsConf.InvalidModel);
-            }*/
-            User user = await _context.Users.FirstOrDefaultAsync(u => u.Name == newUser.Name);
-
-            if ( user != null ){
+            if (!ModelState.IsValid) {
                 return Forbid(StringsConf.InvalidModel);
             }
+            User user = await _context.Users.FirstOrDefaultAsync(u => u.Name == newUser.Name);
 
+            if ( user != null )
+                return Forbid(StringsConf.InvalidModel);
 
             if ( newUser.groupsLinks != null ){
                 foreach ( var groupLink in newUser.groupsLinks ){
