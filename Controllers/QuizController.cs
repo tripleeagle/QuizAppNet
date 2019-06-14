@@ -20,16 +20,16 @@ namespace QuizappNet.Controllers{
             _context = context;
         }
         
-        [HttpGet("getQuizzes")]
+        [HttpGet("all")]
         [Authorize]
-        public async Task<ActionResult<List<Quiz>>> GetAll()
+        public async Task<ActionResult<List<Quiz>>> All()
         {
             return await _context.Quizzes.AsNoTracking().ToListAsync();
         }
 
-        [HttpGet("getQuiz")]
+        [HttpGet("get/{id}")]
         [Authorize]
-        public async Task<ActionResult<Quiz>> GetById(long id)
+        public async Task<ActionResult<Quiz>> Get(long id)
         {
             var item = await (_context.Quizzes.FindAsync(id));
             if (item == null)
@@ -37,7 +37,7 @@ namespace QuizappNet.Controllers{
             return item;
         }
 
-        [HttpPost("createQuiz")]
+        [HttpPost("create")]
         public async Task<ActionResult> Create (Quiz quiz){
             if (!ModelState.IsValid) {
                 return Forbid(StringsConf.InvalidModel);
@@ -55,13 +55,13 @@ namespace QuizappNet.Controllers{
             return Ok();
         }
         
-        [HttpPost("updateQuiz")]
+        [HttpPost("update")]
         public async Task<ActionResult> Update (Quiz newQuiz){
             if (!ModelState.IsValid) {
                 return Forbid(StringsConf.InvalidModel);
             }
 
-            Quiz oldQuiz = (await GetById(newQuiz.Id)).Value;
+            Quiz oldQuiz = (await Get(newQuiz.Id)).Value;
             if ( oldQuiz == null ) {
                 await Create(newQuiz);
                 return Ok();
@@ -86,7 +86,7 @@ namespace QuizappNet.Controllers{
             return Ok();
         }
 
-        [HttpDelete("deleteQuiz")]
+        [HttpDelete("delete/{id}")]
         public async Task<ActionResult> Delete (long id){
             var quiz = await _context.Quizzes.FindAsync(id);
             if ( quiz == null )
@@ -113,9 +113,9 @@ namespace QuizappNet.Controllers{
             return Ok();
         }
 
-        [HttpGet("getResults")]
+        [HttpGet("results/{id}")]
         public async Task<ActionResult<List<Result>>> GetResults(long id){
-            if ( (await GetById(id)) == null ){
+            if ( (await Get(id)) == null ){
                 return NotFound();
             }
             var results =  _context.Results.Where( r => r.QuizId == id).AsNoTracking().ToListAsync();
@@ -125,7 +125,7 @@ namespace QuizappNet.Controllers{
             return await results;
         }
 
-        [HttpGet("getQuestions")]
+        [HttpGet("questions/{id}")]
         public async Task<ActionResult<List<Question>>> GetQuestions(long id)
         {
             IQueryable<QuizQuestion> quizQuestions = _context.QuizQuestions.Where( qq => qq.QuizId == id ).AsNoTracking();

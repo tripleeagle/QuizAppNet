@@ -18,14 +18,14 @@ namespace QuizappNet.Controllers{
             _context = context;
         }
 
-        [HttpGet("getQuestionChoices")]
-        public async Task<ActionResult<List<QuestionChoice>>> GetAll()
+        [HttpGet("all")]
+        public async Task<ActionResult<List<QuestionChoice>>> All()
         {
             return await _context.QuestionChoices.AsNoTracking().ToListAsync();
         }
 
-        [HttpGet("getQuestionChoice")]
-        public async Task<ActionResult<QuestionChoice>> GetById(long id)
+        [HttpGet("get/{id}")]
+        public async Task<ActionResult<QuestionChoice>> Get(long id)
         {
             var item = await _context.QuestionChoices.FindAsync(id);
             if (item == null)
@@ -34,7 +34,7 @@ namespace QuizappNet.Controllers{
             return item;
         }
 
-        [HttpPost("addQuestionChoice")]
+        [HttpPost("create")]
         public async Task<ActionResult> Create (QuestionChoice questionChoice){
             if (!ModelState.IsValid) {
                 return Forbid(StringsConf.InvalidModel);
@@ -44,12 +44,12 @@ namespace QuizappNet.Controllers{
             return Ok();
         }
 
-        [HttpPost("updateQuestionChoice")]
+        [HttpPost("update")]
         public async Task<ActionResult> Update (QuestionChoice newQuestionChoice){
             if (!ModelState.IsValid) {
                 return Forbid(StringsConf.InvalidModel);
             }
-            QuestionChoice oldQuestionChoice = (await GetById(newQuestionChoice.Id)).Value;
+            QuestionChoice oldQuestionChoice = (await Get(newQuestionChoice.Id)).Value;
             if ( oldQuestionChoice == null ) {
                 await Create(newQuestionChoice);
                 return Ok();
@@ -62,7 +62,7 @@ namespace QuizappNet.Controllers{
             return Ok();
         }
 
-        [HttpDelete("deleteQuestionChoice")]
+        [HttpDelete("delete/{id}")]
         public async Task<ActionResult> Delete (long id){
             QuestionChoice questionChoice = await _context.QuestionChoices.FindAsync(id);
             if ( questionChoice == null )
@@ -72,9 +72,9 @@ namespace QuizappNet.Controllers{
             return Ok();
         }
 
-        [HttpGet("getQuestion")]
+        [HttpGet("question/{id}")]
         public async Task<ActionResult<Question>> GetQuiz (long id){
-            QuestionChoice questionChoice = (await GetById(id)).Value;
+            QuestionChoice questionChoice = (await Get(id)).Value;
             if ( questionChoice == null )
                 return NotFound();
             return await _context.Questions.FindAsync(questionChoice.QuestionId);
