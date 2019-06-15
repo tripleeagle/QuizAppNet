@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
 using QuizappNet.Utils;
+using QuizappNet.Utils.Models;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
@@ -31,7 +32,7 @@ namespace QuizappNet.Controllers{
         {
             Result item = await _context.Results.FindAsync(id);
             if (item == null) 
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
             return item;
         }
 
@@ -39,7 +40,7 @@ namespace QuizappNet.Controllers{
         [Authorize]
         public async Task<ActionResult> Create (Result result){
             if (!ModelState.IsValid) {
-                return Forbid(StringsConf.InvalidModel);
+                return new InvalidObjectHttpException().ToJson();;
             }
             await _context.Results.AddAsync(result);
             await _context.SaveChangesAsync();
@@ -50,17 +51,10 @@ namespace QuizappNet.Controllers{
         [Authorize]
         public async Task<ActionResult> Update (Result newResult){
             if (!ModelState.IsValid) {
-                return Forbid(StringsConf.InvalidModel);
+                return new InvalidObjectHttpException().ToJson();;
             }
-            Result oldResult = (await Get(newResult.Id)).Value;
-            if ( oldResult == null ) {
-                await Create(newResult);
-                return Ok();
-            }
-            oldResult.UserName = newResult.UserName;
-            oldResult.Score = newResult.Score;
-            oldResult.QuizId = newResult.QuizId;
-            await _context.SaveChangesAsync();  
+            await Delete(newResult.Id);
+            await Create(newResult);
             return Ok();
         }
 
@@ -69,7 +63,7 @@ namespace QuizappNet.Controllers{
         public async Task<ActionResult> Delete (long id){
             Result result = await _context.Results.FindAsync(id);
             if ( result == null )
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
             _context.Results.Remove(result);
             await _context.SaveChangesAsync();  
             return Ok();
@@ -79,7 +73,7 @@ namespace QuizappNet.Controllers{
         public async Task<ActionResult<Quiz>> Quiz (long id){
             Result result = (await Get(id)).Value;
             if ( result == null )
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
             return await _context.Quizzes.FindAsync(result.QuizId);
         }
     }

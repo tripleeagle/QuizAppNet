@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
 using QuizappNet.Utils;
+using QuizappNet.Utils.Models;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
@@ -29,14 +30,14 @@ namespace QuizappNet.Controllers{
         {
             var item = await _context.Questions.FindAsync(id);
             if (item == null)
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
             return item;
         }
 
         [HttpPost("create")]
         public async Task<ActionResult> Create (Question question){
             if (!ModelState.IsValid) {
-                return Forbid(StringsConf.InvalidModel);
+                return new InvalidObjectHttpException().ToJson();
             }
             await _context.Questions.AddAsync(question);
             if ( question.QuizzesLink != null ){
@@ -53,29 +54,10 @@ namespace QuizappNet.Controllers{
         [HttpPost("update")]
         public async Task<ActionResult> Update (Question newQuestion){
             if (!ModelState.IsValid) {
-                return Forbid(StringsConf.InvalidModel);
+                return new InvalidObjectHttpException().ToJson();
             }
-            Question oldQuestion = (await Get(newQuestion.Id)).Value;
-            if ( oldQuestion == null ) {
-                await Create(newQuestion);
-                return Ok();
-            } 
-            oldQuestion.Complexity = newQuestion.Complexity;
-            oldQuestion.QuestionText = newQuestion.QuestionText;
-            oldQuestion.QuestionChoices.Clear();
-            oldQuestion.QuestionChoices = newQuestion.QuestionChoices;
-
-            if ( oldQuestion.QuizzesLink != null )
-                oldQuestion.QuizzesLink.Clear();
-
-            if ( newQuestion.QuizzesLink != null ){
-                foreach ( var quizLink in newQuestion.QuizzesLink ){
-                    quizLink.Question = newQuestion;
-                    quizLink.Quiz = await _context.Quizzes.FindAsync(quizLink.QuizId);
-                }
-            }
-            oldQuestion.QuizzesLink = newQuestion.QuizzesLink;
-            await _context.SaveChangesAsync();  
+            await Delete (newQuestion.Id);
+            await Create (newQuestion);
             return Ok();
         }
 
@@ -83,7 +65,7 @@ namespace QuizappNet.Controllers{
         public async Task<ActionResult> Delete (long id){
             var question = await _context.Questions.FindAsync(id);
             if ( question == null )
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
 
             if ( question.QuizzesLink != null )
                 question.QuizzesLink.Clear();
@@ -109,7 +91,7 @@ namespace QuizappNet.Controllers{
         [HttpGet("questionChoices/{id}")]
         public async Task<ActionResult<List<QuestionChoice>>> GetQuestionChoices(long id){
             if ( await Get(id) == null )
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
             IQueryable<QuestionChoice> QuestionChoices = _context.QuestionChoices.Where( qc => qc.QuestionId == id ).AsNoTracking();
             return await QuestionChoices.ToListAsync();
         }

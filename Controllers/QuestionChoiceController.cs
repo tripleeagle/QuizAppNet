@@ -1,3 +1,4 @@
+using Microsoft.VisualBasic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
 using QuizappNet.Utils;
+using QuizappNet.Utils.Models;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
@@ -29,15 +31,14 @@ namespace QuizappNet.Controllers{
         {
             var item = await _context.QuestionChoices.FindAsync(id);
             if (item == null)
-                return NotFound();
-        
+                return new NotFoundHttpException(id).ToJson();
             return item;
         }
 
         [HttpPost("create")]
         public async Task<ActionResult> Create (QuestionChoice questionChoice){
             if (!ModelState.IsValid) {
-                return Forbid(StringsConf.InvalidModel);
+                return new InvalidObjectHttpException().ToJson();
             }
             await _context.QuestionChoices.AddAsync(questionChoice);
             await _context.SaveChangesAsync();
@@ -47,18 +48,10 @@ namespace QuizappNet.Controllers{
         [HttpPost("update")]
         public async Task<ActionResult> Update (QuestionChoice newQuestionChoice){
             if (!ModelState.IsValid) {
-                return Forbid(StringsConf.InvalidModel);
+                return new InvalidObjectHttpException().ToJson();
             }
-            QuestionChoice oldQuestionChoice = (await Get(newQuestionChoice.Id)).Value;
-            if ( oldQuestionChoice == null ) {
-                await Create(newQuestionChoice);
-                return Ok();
-            }
-            oldQuestionChoice.ChoiceText = newQuestionChoice.ChoiceText;
-            oldQuestionChoice.IsRight = newQuestionChoice.IsRight;
-            oldQuestionChoice.Question = newQuestionChoice.Question;
-            oldQuestionChoice.QuestionId = newQuestionChoice.QuestionId;
-            await _context.SaveChangesAsync();  
+            await Delete(newQuestionChoice.Id);
+            await Create(newQuestionChoice);  
             return Ok();
         }
 
@@ -66,17 +59,17 @@ namespace QuizappNet.Controllers{
         public async Task<ActionResult> Delete (long id){
             QuestionChoice questionChoice = await _context.QuestionChoices.FindAsync(id);
             if ( questionChoice == null )
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
             _context.QuestionChoices.Remove(questionChoice);
             await _context.SaveChangesAsync();  
             return Ok();
         }
 
         [HttpGet("question/{id}")]
-        public async Task<ActionResult<Question>> GetQuiz (long id){
+        public async Task<ActionResult<Question>> Quiz (long id){
             QuestionChoice questionChoice = (await Get(id)).Value;
             if ( questionChoice == null )
-                return NotFound();
+                return new NotFoundHttpException(id).ToJson();
             return await _context.Questions.FindAsync(questionChoice.QuestionId);
         }
     }

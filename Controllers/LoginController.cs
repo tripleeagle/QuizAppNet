@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
 using QuizappNet.Services;
 using QuizappNet.Utils;
+using QuizappNet.Utils.Models;
 
 namespace QuizappNet.Controllers
 {
@@ -29,12 +30,9 @@ namespace QuizappNet.Controllers
         public async Task<ActionResult> Login(User userModel)
         {
             var user = _context.Users.FirstOrDefault( u => u.Name == userModel.Name);
-            
-            if ( user == null )
-                return NotFound();
 
-            if ( user.Password != userModel.Password)
-                return NotFound();
+            if ( user == null || user.Password != userModel.Password)
+                return new LoginHttpException().ToJson();
 
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Name) };
 
@@ -79,13 +77,13 @@ namespace QuizappNet.Controllers
         [Authorize(Roles = GroupNames.SuperUsers)]
         public async Task<ActionResult> Register(User newUser)
         {
-            if (!ModelState.IsValid) {
-                return Forbid(StringsConf.InvalidModel);
-            }
+            if (!ModelState.IsValid) 
+                return new InvalidObjectHttpException().ToJson();
+            
             User user = await _context.Users.FirstOrDefaultAsync(u => u.Name == newUser.Name);
 
             if ( user != null )
-                return Forbid(StringsConf.InvalidModel);
+                return new ExistingLoginHttpException(user.Name).ToJson();
 
             if ( newUser.groupsLinks != null ){
                 foreach ( var groupLink in newUser.groupsLinks ){
