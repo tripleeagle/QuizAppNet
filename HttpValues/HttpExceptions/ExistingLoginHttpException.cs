@@ -1,4 +1,6 @@
-namespace QuizappNet.Utils.Models
+using QuizappNet.Values;
+
+namespace QuizappNet.HttpValues.HttpExceptions
 {
     public class ExistingLoginHttpException : HttpException
     {

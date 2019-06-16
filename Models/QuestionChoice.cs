@@ -8,8 +8,13 @@ namespace QuizappNet.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+
+        [Required(AllowEmptyStrings = false)]
         public string ChoiceText { get; set; }
+
+        [Required(AllowEmptyStrings = false)]
         public bool IsRight { get; set; }
+
         public long? QuestionId { get; set; }
         public Question Question { get; set; }
     }

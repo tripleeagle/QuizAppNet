@@ -15,6 +15,7 @@ namespace QuizappNet.Models
         
         [Required(AllowEmptyStrings = false)]
         public string Password { get; set; }
+        
         public ICollection<GroupUser> groupsLinks { get; set; }
     }
 }

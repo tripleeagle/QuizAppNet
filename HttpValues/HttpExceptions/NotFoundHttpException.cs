@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using QuizappNet.Utils.Models;
+using QuizappNet.Values;
 
-namespace QuizappNet.Utils
+namespace QuizappNet.HttpValues.HttpExceptions
 {
     public class NotFoundHttpException : HttpException
     {

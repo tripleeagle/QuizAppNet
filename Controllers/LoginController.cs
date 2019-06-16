@@ -1,57 +1,50 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
-using QuizappNet.Services;
-using QuizappNet.Utils;
-using QuizappNet.Utils.Models;
+using QuizappNet.HttpValues.HttpExceptions;
+using QuizappNet.Values;
+using QuizappNet.Services.Interfaces;
+using QuizappNet.HttpValues;
 
 namespace QuizappNet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class LoginController: ControllerBase {
-        private readonly QuizAppContext _context;
-        IUserService userService;
-         public LoginController (QuizAppContext context){   
-            _context = context;
-           this.userService = new UserService(_context);
+        private readonly ILoginService _loginService;
+
+        public LoginController (ILoginService loginService){   
+            _loginService = loginService;
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult> Login(User userModel)
         {
-            var user = _context.Users.FirstOrDefault( u => u.Name == userModel.Name);
+            if (!ModelState.IsValid) 
+                return new InvalidObjectHttpException().ToJson();
+                
+            var user = _loginService.Get(userModel.Name).Value;
 
             if ( user == null || user.Password != userModel.Password)
                 return new LoginHttpException().ToJson();
 
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Name) };
 
-            var groups = _context.GroupUsers.Where(g => g.UserId == user.Id).ToList();
+            var groups = (await _loginService.Groups(userModel)).Value;
 
-            foreach (var groupUser in groups){
-                var group = await _context.Groups.FindAsync(groupUser.GroupId);
-                claims.Add(new Claim(group.Name, groupUser.GroupId.ToString()));
-            }
+            if ( !_loginService.CheckGroups(groups) )
+                return new InvalidObjectHttpException().ToJson();
 
-            var isAdmin = groups.Any(_ => _.Group.Name == GroupNames.Admins);
-            var isSuperUser = groups.Any(_ => _.Group.Name == GroupNames.SuperUsers);
-        
-            if(isAdmin)
-                claims.Add(new Claim(ClaimTypes.Role, GroupNames.Admins));
-
-            if(isSuperUser)
-                claims.Add(new Claim(ClaimTypes.Role, GroupNames.SuperUsers));
-
+            foreach (var group in groups)
+                claims.Add(new Claim(ClaimTypes.Role, group.Name));
+            
             var props = new AuthenticationProperties
             {
                 IsPersistent = true,
@@ -62,15 +55,16 @@ namespace QuizappNet.Controllers
             var principal = new ClaimsPrincipal(identity);
 
             await this.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
-            return Ok();
+            return new HttpOk().ToJson();
         }
+
 
         [HttpPost("logout")]
         [AllowAnonymous]
         public ActionResult Logout()
         {
             this.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok();
+            return new HttpOk().ToJson();
         }
 
         [HttpPost("register")]
@@ -79,23 +73,8 @@ namespace QuizappNet.Controllers
         {
             if (!ModelState.IsValid) 
                 return new InvalidObjectHttpException().ToJson();
-            
-            User user = await _context.Users.FirstOrDefaultAsync(u => u.Name == newUser.Name);
-
-            if ( user != null )
-                return new ExistingLoginHttpException(user.Name).ToJson();
-
-            if ( newUser.groupsLinks != null ){
-                foreach ( var groupLink in newUser.groupsLinks ){
-                    groupLink.User = newUser;
-                    groupLink.Group = _context.Groups.Find(groupLink.GroupId);
-                }
-            }
-
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
               
-            return Ok();
+            return await _loginService.Create(newUser);
         }
     }
 }

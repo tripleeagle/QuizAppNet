@@ -1,37 +1,31 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using QuizappNet.Models;
-using QuizappNet.Utils;
-using QuizappNet.Utils.Models;
+using QuizappNet.HttpValues.HttpExceptions;
+using QuizappNet.Services.Interfaces;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class QuestionController : ControllerBase{
-        private readonly QuizAppContext _context;
+        private readonly IQuestionService _questionService;
 
-        public QuestionController (QuizAppContext context){   
-            _context = context;
+        public QuestionController (IQuestionService questionService){   
+            _questionService = questionService;
         }
 
         [HttpGet("all")]
         public async Task<ActionResult<List<Question>>> All()
         {
-            return await _context.Questions.AsNoTracking().ToListAsync();
+            return await _questionService.All();
         }
 
-        [HttpGet("get/{id}")]
         public async Task<ActionResult<Question>> Get(long id)
         {
-            var item = await _context.Questions.FindAsync(id);
-            if (item == null)
-                return new NotFoundHttpException(id).ToJson();
-            return item;
+            return await _questionService.Get(id);
         }
 
         [HttpPost("create")]
@@ -39,16 +33,7 @@ namespace QuizappNet.Controllers{
             if (!ModelState.IsValid) {
                 return new InvalidObjectHttpException().ToJson();
             }
-            await _context.Questions.AddAsync(question);
-            if ( question.QuizzesLink != null ){
-                foreach ( var quizLink in question.QuizzesLink ){
-                    quizLink.Question = question;
-                    quizLink.Quiz = await _context.Quizzes.FindAsync(quizLink.QuizId);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok();
+            return await _questionService.Create(question);
         }
 
         [HttpPost("update")]
@@ -56,44 +41,17 @@ namespace QuizappNet.Controllers{
             if (!ModelState.IsValid) {
                 return new InvalidObjectHttpException().ToJson();
             }
-            await Delete (newQuestion.Id);
-            await Create (newQuestion);
-            return Ok();
+            return await _questionService.Update(newQuestion);
         }
 
         [HttpDelete("delete/{id}")]
         public async Task<ActionResult> Delete (long id){
-            var question = await _context.Questions.FindAsync(id);
-            if ( question == null )
-                return new NotFoundHttpException(id).ToJson();
-
-            if ( question.QuizzesLink != null )
-                question.QuizzesLink.Clear();
-            
-            if ( question.QuestionChoices != null )
-                question.QuestionChoices.Clear();
-            
-            var questionChoices = _context.QuestionChoices.Where( r => r.QuestionId == id ).ToListAsync();
-            if ( questionChoices != null ){
-                _context.QuestionChoices.RemoveRange(await questionChoices);
-            }
-
-            var quizList = _context.QuizQuestions.Where( qq => qq.QuestionId == id ).ToListAsync();
-            if ( quizList != null ){
-                _context.QuizQuestions.RemoveRange(await quizList);
-            }
-
-            _context.Questions.Remove(question);
-            await _context.SaveChangesAsync();  
-            return Ok();
+            return await  _questionService.Delete(id);
         }
 
         [HttpGet("questionChoices/{id}")]
-        public async Task<ActionResult<List<QuestionChoice>>> GetQuestionChoices(long id){
-            if ( await Get(id) == null )
-                return new NotFoundHttpException(id).ToJson();
-            IQueryable<QuestionChoice> QuestionChoices = _context.QuestionChoices.Where( qc => qc.QuestionId == id ).AsNoTracking();
-            return await QuestionChoices.ToListAsync();
+        public async Task<ActionResult<List<QuestionChoice>>> QuestionChoices(long id){
+            return await _questionService.QuestionChoices(id);
         }
     }
 }

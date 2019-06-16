@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace QuizappNet.Utils.Models
+namespace QuizappNet.HttpValues.HttpExceptions
 {
     public abstract class HttpException
     {

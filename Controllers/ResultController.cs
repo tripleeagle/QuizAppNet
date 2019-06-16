@@ -1,80 +1,62 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using QuizappNet.HttpValues.HttpExceptions;
 using QuizappNet.Models;
-using QuizappNet.Utils;
-using QuizappNet.Utils.Models;
+using QuizappNet.Services.Interfaces;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
     [ApiController]
-
     public class ResultController : ControllerBase{
-        private readonly QuizAppContext _context;
+        private readonly IResultService _resultService;
 
-        public ResultController (QuizAppContext context){   
-            _context = context;
+        public ResultController (IResultService resultService){   
+            _resultService = resultService;
         }
 
         [HttpGet("all")]
         [Authorize]
         public async Task<ActionResult<List<Result>>> All()
         {
-            return await _context.Results.AsNoTracking().ToListAsync();
+            return await _resultService.All();
         }
 
         [HttpGet("get/{id}")]
         [Authorize]
         public async Task<ActionResult<Result>> Get(long id)
         {
-            Result item = await _context.Results.FindAsync(id);
-            if (item == null) 
-                return new NotFoundHttpException(id).ToJson();
-            return item;
+            return await _resultService.Get(id);
         }
 
         [HttpPost("create")]
         [Authorize]
         public async Task<ActionResult> Create (Result result){
             if (!ModelState.IsValid) {
-                return new InvalidObjectHttpException().ToJson();;
+                return new InvalidObjectHttpException().ToJson();
             }
-            await _context.Results.AddAsync(result);
-            await _context.SaveChangesAsync();
-            return Ok();
+            return await _resultService.Create(result);
         }
 
         [HttpPost("update")]
         [Authorize]
         public async Task<ActionResult> Update (Result newResult){
             if (!ModelState.IsValid) {
-                return new InvalidObjectHttpException().ToJson();;
+                return new InvalidObjectHttpException().ToJson();
             }
-            await Delete(newResult.Id);
-            await Create(newResult);
-            return Ok();
+            return await _resultService.Update(newResult);
         }
 
         [HttpDelete("delete/{id}")]
         [Authorize]
-        public async Task<ActionResult> Delete (long id){
-            Result result = await _context.Results.FindAsync(id);
-            if ( result == null )
-                return new NotFoundHttpException(id).ToJson();
-            _context.Results.Remove(result);
-            await _context.SaveChangesAsync();  
-            return Ok();
+        public async Task<ActionResult> Delete (long id){ 
+            return await _resultService.Delete(id);
         }
 
         [HttpGet("quiz/{id}")]
         public async Task<ActionResult<Quiz>> Quiz (long id){
-            Result result = (await Get(id)).Value;
-            if ( result == null )
-                return new NotFoundHttpException(id).ToJson();
-            return await _context.Quizzes.FindAsync(result.QuizId);
+            return await _resultService.Quiz(id);
         }
     }
 }

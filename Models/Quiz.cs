@@ -9,10 +9,17 @@ namespace QuizappNet.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+
+        [Required(AllowEmptyStrings = false)]
         public string Name { get; set; }
+
+        [Required(AllowEmptyStrings = false)]
         public string Type { get; set; }
+
         public double MinPercentage { get; set; }
+
         public virtual ICollection<QuizQuestion> QuestionsLink { get; set; }
+        
         public virtual ICollection<Result> Results { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using QuizappNet.Values;
 
-namespace QuizappNet.Utils.Models
+namespace QuizappNet.HttpValues.HttpExceptions
 {
     public class InvalidObjectHttpException : HttpException
     {
