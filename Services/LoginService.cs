@@ -19,8 +19,7 @@ namespace QuizappNet.Services
             _db = db;
         }
 
-        public async Task<ActionResult> Create(User newUser)
-        {
+        public async Task<ActionResult> Create(User newUser) {
             User user = await _db.Users.FirstOrDefaultAsync(u => u.Name == newUser.Name);
 
             if ( user != null || !CheckGroups( (await Groups(newUser)).Value ))
@@ -39,8 +38,7 @@ namespace QuizappNet.Services
             return new HttpOk().ToJson();
         }
 
-        public ActionResult<User> Get(string username)
-        {
+        public ActionResult<User> Get(string username) {
             return _db.Users.FirstOrDefault( u => u.Name == username);
         }
 
@@ -50,15 +48,13 @@ namespace QuizappNet.Services
             if ( userOld == null )
                 return groups;
 
-            List<GroupUser> groupUsers = await _db.GroupUsers.Where(g => g.UserId == userOld.Id).ToListAsync();
-            
+            List<GroupUser> groupUsers = await _db.GroupUsers.Where(g => g.UserId == userOld.Id).ToListAsync();            
             foreach ( GroupUser groupUser in groupUsers )
                 groups.Add( await _db.Groups.FindAsync(groupUser.GroupId) );
             return groups;
         }
 
-        public bool CheckGroups(List<Group> groups)
-        {
+        public bool CheckGroups(List<Group> groups) {
             foreach ( Group group in groups ){
                 bool exists = false;
                 foreach ( string definedGroupName in GroupNames.GroupNameList ){

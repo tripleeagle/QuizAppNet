@@ -56,12 +56,6 @@ namespace QuizappNet.Services
             var quiz = await _db.Quizzes.FindAsync(id);
             if ( quiz == null )
                 return new NotFoundHttpException(id).ToJson();
-
-            if ( quiz.QuestionsLink != null )
-                quiz.QuestionsLink.Clear();
-            
-            if ( quiz.Results != null )
-                quiz.Results.Clear();
             
             var results = _db.Results.Where( r => r.QuizId == id ).ToListAsync();
             if ( results != null ){
@@ -72,7 +66,7 @@ namespace QuizappNet.Services
             if ( questionList != null ){
                 _db.QuizQuestions.RemoveRange(await questionList);
             }
-
+            
             _db.Quizzes.Remove(quiz);
             await _db.SaveChangesAsync();  
             return new HttpOk().ToJson();

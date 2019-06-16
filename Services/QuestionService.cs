@@ -12,7 +12,7 @@ namespace QuizappNet.Services
 {
     public class QuestionService : IQuestionService
     {
-         private readonly QuizAppContext _db;
+        private readonly QuizAppContext _db;
 
         public QuestionService (QuizAppContext context){   
             _db = context;
@@ -31,7 +31,8 @@ namespace QuizappNet.Services
             return item;
         }
 
-        public async Task<ActionResult> Create (Question question){
+        public async Task<ActionResult> Create (Question question)
+        {
             await _db.Questions.AddAsync(question);
             if ( question.QuizzesLink != null ){
                 foreach ( var quizLink in question.QuizzesLink ){
@@ -44,23 +45,19 @@ namespace QuizappNet.Services
             return new HttpOk().ToJson();
         }
 
-        public async Task<ActionResult> Update (Question newQuestion){
+        public async Task<ActionResult> Update (Question newQuestion)
+        {
             await Delete (newQuestion.Id);
             await Create (newQuestion);
             return new HttpOk().ToJson();
         }
 
-        public async Task<ActionResult> Delete (long id){
+        public async Task<ActionResult> Delete (long id)
+        {
             var question = await _db.Questions.FindAsync(id);
             if ( question == null )
                 return new NotFoundHttpException(id).ToJson();
 
-            if ( question.QuizzesLink != null )
-                question.QuizzesLink.Clear();
-            
-            if ( question.QuestionChoices != null )
-                question.QuestionChoices.Clear();
-            
             var questionChoices = _db.QuestionChoices.Where( r => r.QuestionId == id ).ToListAsync();
             if ( questionChoices != null ){
                 _db.QuestionChoices.RemoveRange(await questionChoices);
@@ -70,13 +67,14 @@ namespace QuizappNet.Services
             if ( quizList != null ){
                 _db.QuizQuestions.RemoveRange(await quizList);
             }
-
+            
             _db.Questions.Remove(question);
             await _db.SaveChangesAsync();  
             return new HttpOk().ToJson();
         }
 
-        public async Task<ActionResult<List<QuestionChoice>>> QuestionChoices(long id){
+        public async Task<ActionResult<List<QuestionChoice>>> QuestionChoices(long id)
+        {
             if ( await Get(id) == null )
                 return new NotFoundHttpException(id).ToJson();
             IQueryable<QuestionChoice> QuestionChoices = _db.QuestionChoices.Where( qc => qc.QuestionId == id ).AsNoTracking();

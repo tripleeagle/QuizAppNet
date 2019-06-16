@@ -20,7 +20,6 @@ namespace QuizappNet.Models
         public DbSet<Question> Questions { get; set; }
         public DbSet<QuestionChoice> QuestionChoices { get; set; }
         public DbSet<Result> Results { get; set; }
-        public DbSet<QuizQuestion> QuizQuestions { get; set; }
-        
+        public DbSet<QuizQuestion> QuizQuestions { get; set; }   
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuizappNet.HttpValues.HttpExceptions;
 using QuizappNet.Models;
 using QuizappNet.Services.Interfaces;
+using QuizappNet.Values;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
@@ -31,7 +32,7 @@ namespace QuizappNet.Controllers{
         }
 
         [HttpPost("create")]
-        [Authorize]
+        [Authorize(Roles = GroupNames.SuperUsers + "," + GroupNames.Admins)]
         public async Task<ActionResult> Create (Result result){
             if (!ModelState.IsValid) {
                 return new InvalidObjectHttpException().ToJson();
@@ -40,7 +41,7 @@ namespace QuizappNet.Controllers{
         }
 
         [HttpPost("update")]
-        [Authorize]
+        [Authorize(Roles = GroupNames.SuperUsers + "," + GroupNames.Admins)]
         public async Task<ActionResult> Update (Result newResult){
             if (!ModelState.IsValid) {
                 return new InvalidObjectHttpException().ToJson();
@@ -49,12 +50,13 @@ namespace QuizappNet.Controllers{
         }
 
         [HttpDelete("delete/{id}")]
-        [Authorize]
+        [Authorize(Roles = GroupNames.SuperUsers + "," + GroupNames.Admins)]
         public async Task<ActionResult> Delete (long id){ 
             return await _resultService.Delete(id);
         }
 
         [HttpGet("quiz/{id}")]
+        [Authorize]
         public async Task<ActionResult<Quiz>> Quiz (long id){
             return await _resultService.Quiz(id);
         }

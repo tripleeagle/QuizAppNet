@@ -68,7 +68,7 @@ namespace QuizappNet.Controllers
         }
 
         [HttpPost("register")]
-        [Authorize(Roles = GroupNames.SuperUsers)]
+        [Authorize(Roles = GroupNames.SuperUsers + "," + GroupNames.Admins)]
         public async Task<ActionResult> Register(User newUser)
         {
             if (!ModelState.IsValid) 

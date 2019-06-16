@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using QuizappNet.HttpValues.HttpExceptions;
 using QuizappNet.Services.Interfaces;
+using QuizappNet.Values;
 
 namespace QuizappNet.Controllers{
     [Route("api/[controller]")]
@@ -32,6 +33,7 @@ namespace QuizappNet.Controllers{
         }
 
         [HttpPost("create")]
+        [Authorize(Roles = GroupNames.SuperUsers + "," + GroupNames.Admins)]
         public async Task<ActionResult> Create (Quiz quiz){
             if (!ModelState.IsValid) {
                 return new InvalidObjectHttpException().ToJson();
@@ -40,6 +42,7 @@ namespace QuizappNet.Controllers{
         }
         
         [HttpPost("update")]
+        [Authorize(Roles = GroupNames.SuperUsers + "," + GroupNames.Admins)]
         public async Task<ActionResult> Update (Quiz newQuiz){
             if (!ModelState.IsValid) {
                 return new InvalidObjectHttpException().ToJson();;
@@ -48,16 +51,19 @@ namespace QuizappNet.Controllers{
         }
 
         [HttpDelete("delete/{id}")]
+        [Authorize(Roles = GroupNames.SuperUsers + "," + GroupNames.Admins)]
         public async Task<ActionResult> Delete (long id){
             return await _quizService.Delete(id);
         }
 
         [HttpGet("results/{id}")]
+        [Authorize]
         public async Task<ActionResult<List<Result>>> Results(long id){
             return await _quizService.Results(id);
         }
 
         [HttpGet("questions/{id}")]
+        [Authorize]
         public async Task<ActionResult<List<Question>>> Questions(long id)
         {
             return await _quizService.Questions(id);
