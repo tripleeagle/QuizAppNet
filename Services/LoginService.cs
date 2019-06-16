@@ -45,9 +45,13 @@ namespace QuizappNet.Services
         }
 
         public async Task<ActionResult<List<Group>>> Groups(User user) {
-            long userId = Get(user.Name).Value.Id;
-            List<GroupUser> groupUsers = await _db.GroupUsers.Where(g => g.UserId == userId).ToListAsync();
             List<Group> groups = new List<Group>();
+            var userOld = Get(user.Name).Value;
+            if ( userOld == null )
+                return groups;
+
+            List<GroupUser> groupUsers = await _db.GroupUsers.Where(g => g.UserId == userOld.Id).ToListAsync();
+            
             foreach ( GroupUser groupUser in groupUsers )
                 groups.Add( await _db.Groups.FindAsync(groupUser.GroupId) );
             return groups;
