@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using QuizappNet.Models;
 using QuizappNet.HttpValues.HttpExceptions;
 using QuizappNet.Values;
@@ -25,39 +29,49 @@ namespace QuizappNet.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult> Login(User userModel)
+        public async Task<ActionResult> Login(User user)
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
                 return new InvalidObjectHttpException().ToJson();
-                
-            var user = _loginService.Get(userModel.Name).Value;
-
-            if ( user == null || user.Password != userModel.Password)
-                return new LoginHttpException().ToJson();
-
-            var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Name) };
-
-            var groups = (await _loginService.Groups(userModel)).Value;
-
-            if ( !_loginService.CheckGroups(groups) )
-                return new InvalidObjectHttpException().ToJson();
-
-            foreach (var group in groups)
-                claims.Add(new Claim(ClaimTypes.Role, group.Name));
             
-            var props = new AuthenticationProperties
+            var userDb = _loginService.Get(user.Name).Value;
+            
+            if ( userDb == null || user.Password != userDb.Password)
+                return new LoginHttpException().ToJson();
+            
+            var identity = await GetIdentity(userDb);
+            var now = DateTime.UtcNow;
+            var jwt = new JwtSecurityToken(
+                issuer: AuthOptions.ISSUER,
+                audience: AuthOptions.AUDIENCE,
+                notBefore: now,
+                claims: identity.Claims,
+                expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
+                signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
+            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+            
+            var response = new
             {
-                IsPersistent = true,
-                ExpiresUtc = DateTime.UtcNow.AddMinutes(5),
+                access_token = encodedJwt,
+                username = identity.Name
             };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            await this.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
-            return new HttpOk().ToJson();
+            Response.ContentType = "application/json";
+            await Response.WriteAsync(JsonConvert.SerializeObject(response, new JsonSerializerSettings { Formatting = Formatting.Indented }));
+            return Ok();
         }
 
+        private async Task<ClaimsIdentity> GetIdentity(User user)
+        {
+            var claims = new List<Claim> { new Claim(ClaimsIdentity.DefaultNameClaimType, user.Name) };
+            var groups = await _loginService.Groups(user);
+            foreach (var group in groups.Value)
+            {
+                claims.Add(new Claim(ClaimsIdentity.DefaultRoleClaimType, group.Name));
+            }
+            return  new ClaimsIdentity(claims, "Token", 
+                ClaimsIdentity.DefaultNameClaimType,
+                ClaimsIdentity.DefaultRoleClaimType);
+        }
 
         [HttpPost("logout")]
         [AllowAnonymous]
